@@ -1,0 +1,49 @@
+<html ng-app="mainApp">
+<head>
+    <title>Todo App</title>
+    <script src="angular.min.js"></script>
+</head>
+<body>
+    <div ng-controller="todoCtrl as ctrl">
+        <h1>Todo App</h1>
+        <div>
+            <p>Add a Todo</p>
+            <input type="text" ng-model="ctrl.newTodo">
+            <button ng-click="ctrl.addTodo(ctrl.newTodo)">Add</button>
+        </div>
+        <div>
+            <p>Your Todos:</p>
+            <button ng-click="ctrl.edit(ctrl.todos)">{{ctrl.editMode? 'Done' : 'Edit'}}</button>
+            <div>
+                <div ng-repeat="todo in ctrl.todos track by $index">
+                    <span ng-hide="ctrl.editMode">{{$index+1}}. {{todo}} <button ng-click="ctrl.delete($index)">Delete</button></span>
+                    <div ng-show="ctrl.editMode">
+                        {{$index+1}}. <input type="text" ng-model="ctrl.todos[$index]">
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        angular.module("mainApp", [])
+        .controller("todoCtrl", function() {
+            this.todos = ['foo','bar', 'baz'];
+            this.editText = 'Edit';
+            this.editMode = false;
+            this.addTodo = function(newTodo)  {
+                this.todos.push(newTodo);
+                this.newTodo = '';
+            }
+            this.edit = function(newTodos) {
+                this.editMode = !this.editMode;
+            }
+            this.delete = function(index) {
+                console.log(index);
+                this.todos.splice(index, 1);
+            }
+        });
+    </script>
+</body>
+</html>

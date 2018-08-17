@@ -1,0 +1,35 @@
+<html ng-app="nestedController">
+
+<head>
+    <title>Nested Controller App</title>
+    <script src="angular.min.js"></script>
+</head>
+
+<body>
+    <h1>Nested Controller App</h1>
+    <div ng-controller="Ctrl1 as c1">
+        <p ng-bind="c1.testProp"></p>
+        <div ng-controller="Ctrl2 as c2">
+                <p>{{c2.testProp}}</p>
+            </div>
+    </div>
+
+    <script>
+        var app = angular.module("nestedController", []);
+
+        app.controller("Ctrl1", Ctrl1);
+        app.controller("Ctrl2", Ctrl2);
+
+        function Ctrl1() {
+            // var this = $scope;
+            this.testProp = "From Ctrl 1";
+        }
+
+        function Ctrl2() {
+            this.testProp = "From Ctrl 2";
+        }
+    </script>
+
+</body>
+
+</html>

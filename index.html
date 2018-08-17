@@ -1,0 +1,172 @@
+<html ng-app="mainApp">
+
+<head>
+    <title>Contacts App</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+        crossorigin="anonymous">
+    <script src="angular.min.js"></script>
+</head>
+
+<body>
+    <div ng-controller="HeaderCtrl as headerCtrl">
+        <h1>{{headerCtrl.appTitle}}</h1>
+    </div>
+    <div ng-controller="ContactCtrl as ctrl" class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="list-group">
+                    <li class="list-group-item" ng-repeat="contact in ctrl.contacts" ng-click="ctrl.selectContact($index)">
+                        <span>{{contact.name.first + " " + contact.name.last}}</span>
+                    </li>
+                </ul>
+                <button type="button" class="btn btn-success" ng-hide="ctrl.addMode" ng-click=ctrl.addUser()>Add Contact</button>
+            </div>
+            <div class="col-md-6">
+                <div class="alert alert-success" ng-if="ctrl.successMessage">{{ctrl.successMessage}}</div>
+                <div class="alert alert-danger" ng-if="ctrl.errorMessage">{{ctrl.errorMessage}}</div>
+                <div class="card" style="width: 18rem;">
+                    <img class="card-img-top" ng-src="{{ctrl.selectedContact.picture.medium}}" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">Name: {{ctrl.selectedContact.name.first + " " + ctrl.selectedContact.name.last}}</h5>
+                        <p class="card-text">
+                            <span>Street: </span>
+                            <span ng-hide="ctrl.editMode">{{ctrl.selectedContact.location.street}}</span>
+                            <input type="text" ng-model="ctrl.selectedContact.location.street" ng-show="ctrl.editMode">
+                        </p>
+                        <p class="card-text">
+                            <span>City: </span>
+                            <span ng-hide="ctrl.editMode">{{ctrl.selectedContact.location.city}}</span>
+                            <input type="text" ng-model="ctrl.selectedContact.location.city" ng-show="ctrl.editMode">
+                        </p>
+                        <p class="card-text">
+                            <span>State: </span>
+                            <span ng-hide="ctrl.editMode">{{ctrl.selectedContact.location.state}}</span>
+                            <input type="text" ng-model="ctrl.selectedContact.location.state" ng-show="ctrl.editMode">
+                        </p>
+                        <p class="card-text">
+                            <span>Phone: </span>
+                            <span ng-hide="ctrl.editMode">{{ctrl.selectedContact.cell}}</span>
+                            <input type="text" ng-model="ctrl.selectedContact.cell" ng-show="ctrl.editMode">
+                        </p>
+                        <a href="#" class="btn btn-primary" ng-hide="ctrl.editMode" ng-click="ctrl.toggleEditMode()">Edit</a>
+                        <a href="#" class="btn btn-primary" ng-show="ctrl.editMode" ng-click="ctrl.saveUser()">Save</a>
+                        <a href="#" class="btn btn-danger" ng-show="ctrl.editMode" ng-click="ctrl.toggleEditMode()">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div ng-controller="FooterCtrl as footerCtrl">
+        <h1>{{footerCtrl.appTitle}}</h1>
+    </div>
+
+    <script>
+        function prepareAppConfig(AppNameService) {
+            var value = {};
+            value.name = AppNameService;
+            return value;
+        }
+
+        angular.module("mainApp", [])
+            .controller("ContactCtrl", function (ContactDataService) {
+                var self = this;
+                this.editMode = false;
+                this.addMode = false;
+                ContactDataService.getContacts()
+                    .then(function (data) {
+                        self.contacts = data;
+                        self.selectedContact = self.contacts[0];
+                    });
+
+                this.selectContact = function (index) {
+                    this.selectedContact = this.contacts[index];
+                    this.successMessage = undefined;
+                }
+
+                this.toggleEditMode = function () {
+                    this.editMode = !this.editMode;
+                }
+
+                this.saveUser = function () {
+                    this.toggleEditMode();
+                    var userData = this.selectedContact;
+                    if (!self.addMode) {
+                        ContactDataService.createUser(userData)
+                            .then(function () {
+                                self.successMessage = "Data successfully updated";
+                            }, function () {
+                                self.errorMessage = "Error!";
+                            })
+                    } else {
+                        ContactDataService.saveUser(userData)
+                            .then(function () {
+                                self.successMessage = "Data successfully updated";
+                            }, function () {
+                                self.errorMessage = "Error!";
+                            })
+                    }
+
+                }
+
+                this.addUser = function () {
+                    this.selectedContact = {
+                        "id": new Date().toTimeString()
+                    };
+                    this.editMode = true;
+                }
+            })
+            .value("AppNameService", "New Contact App")
+            .factory("AppDataFactoryService", prepareAppConfig)
+            .service("ContactDataService", function ($http) {
+                var self = this;
+
+                self.getContacts = function () {
+                    var promise1 = $http.get('http://localhost:3000/contacts');
+                    var promise2 = promise1.then(function (response) {
+                        return response.data;
+                    })
+                    return promise2;
+                }
+
+                self.saveUser = function (userData) {
+                    return $http.put('http://localhost:3000/contacts/' + userData.id, userData)
+                        .then(function (response) {
+                            console.log(response);
+                        })
+                }
+
+                self.createUser = function (userData) {
+                    return $http.post('http://localhost:3000/contacts/', userData)
+                        .then(function (response) {
+                            console.log(response);
+                        })
+                }
+
+                // self.getContacts = new Promise(function(resolve, reject) {
+                //     $http.get('http://localhost:3000/contacts')
+                //         .then(function (response) {
+                //             // console.log("status:" + response.data);
+                //             resolve(response.data);
+                //         }).catch(function (response) {
+                //             reject(new Error());
+                //         }).finally(function () {
+                //             console.log("Task Finished.");
+                //         });
+                // })                
+            })
+            .controller("HeaderCtrl", function (AppDataFactoryService) {
+                this.appTitle = AppDataFactoryService.name;
+
+            })
+            .controller("FooterCtrl", function (AppDataFactoryService) {
+                this.appTitle = AppDataFactoryService.name;
+            });
+    </script>
+</body>
+
+</html>

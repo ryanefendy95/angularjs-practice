@@ -1,0 +1,47 @@
+<html ng-app="calcController">
+
+<head>
+    <title>Calculator App</title>
+    <script src="angular.min.js"></script>
+</head>
+
+<body>
+    <div ng-controller="Ctrl1 as c1">
+        <h1>Calculator App</h1>
+        <div>
+            <input type="text" ng-model="c1.operand1">
+            <span>{{c1.data.operator}}</span>
+            <input type="text" ng-model="c1.operand2">
+            <button ng-click="c1.evalExp(c1.operand1, c1.operand2, c1.data.operator)">=</button>
+            <span>{{c1.res}}</span>
+            <!-- {{c1.operand1}} {{c1.operand2}} -->
+        </div>
+        <div>
+            <span>Choose operation:</span>
+            <button ng-repeat="button in c1.buttons" ng-click="c1.data.operator = button">{{button}}</button>
+
+        </div>
+
+
+    </div>
+
+    <script>
+        var app = angular.module("calcController", []);
+
+        app.controller("Ctrl1", Ctrl1);
+
+        function Ctrl1() {
+            this.buttons = ['+', '-', '*', '/']
+            this.data = {};
+            // var this = this;
+            this.res = '';
+            this.evalExp = function (operand1, operand2, operator) {
+                this.res = eval(operand1 + operator + operand2);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
